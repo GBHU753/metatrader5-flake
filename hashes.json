@@ -1,0 +1,10 @@
+{
+  "mt5": {
+    "url": "https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe",
+    "hash": ""
+  },
+  "webview2": {
+    "url": "https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/f2910a1e-e5a6-4f17-b52d-7faf525d17f8/MicrosoftEdgeWebview2Setup.exe",
+    "hash": ""
+  }
+}

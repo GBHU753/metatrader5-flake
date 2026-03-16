@@ -1,0 +1,47 @@
+name: Nightly hash update
+
+on:
+  schedule:
+    # Run every night at 02:00 UTC
+    - cron: "0 2 * * *"
+  workflow_dispatch: {}   # allow manual trigger from the Actions tab
+
+permissions:
+  contents: write         # needed to push the updated hashes.json
+
+jobs:
+  update-hashes:
+    name: Refresh installer hashes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v13
+
+      - name: Run update.sh
+        run: ./update.sh
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet hashes.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push updated hashes
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add hashes.json
+          git commit -m "chore: update installer hashes $(date -u +%Y-%m-%d)"
+          git push
+
+      - name: No changes
+        if: steps.diff.outputs.changed == 'false'
+        run: echo "Installer hashes are up to date — nothing to commit."
