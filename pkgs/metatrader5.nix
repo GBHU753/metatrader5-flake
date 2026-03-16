@@ -59,23 +59,37 @@ in mkWindowsApp rec {
   # winAppInstall runs inside the unionfs bottle on FIRST LAUNCH.
   # The Wine prefix is already initialised at this point.
   winAppInstall = ''
-    # Set Windows version to 11 (required by MT5)
-    wine reg add 'HKLM\Software\Microsoft\Windows NT\CurrentVersion' \
-      /v CurrentVersion /d "10.0" /f
-    winecfg -v win11
+    # Set Windows version to 10/11 via registry (non-interactive).
+    # winecfg -v requires a display and opens a GUI; use reg directly instead.
+    $WINE reg add 'HKLM\Software\Microsoft\Windows NT\CurrentVersion' \
+      /v CurrentVersion /t REG_SZ /d "10.0" /f
+    $WINE reg add 'HKLM\Software\Microsoft\Windows NT\CurrentVersion' \
+      /v CurrentBuildNumber /t REG_SZ /d "22621" /f
+    $WINE reg add 'HKLM\Software\Microsoft\Windows NT\CurrentVersion' \
+      /v CSDVersion /t REG_SZ /d "" /f
+    $WINE reg add 'HKLM\System\CurrentControlSet\Control\Windows' \
+      /v CSDVersion /t REG_DWORD /d 0 /f
 
-    # Install WebView2 silently
-    wine ${webview2Installer} /silent /install
-    wineserver -w
+    # Install WebView2 silently.
+    # WebView2's bootstrapper spawns persistent background update processes
+    # (edgeupdate) that never exit on their own under Wine, so we must NOT
+    # use "wineserver -w" here — it would block forever.
+    # Instead, run the installer and then forcibly kill all Wine processes
+    # before proceeding to the MT5 installer.
+    $WINE ${webview2Installer} /silent /install || true
+    wineserver -k
+    sleep 2
 
-    # Run the MT5 installer — interactive GUI wizard
-    wine ${mt5Installer}
+    # Run the MT5 installer — interactive GUI wizard.
+    # The user must click through the setup wizard on the desktop.
+    $WINE ${mt5Installer}
     wineserver -w
   '';
 
   # winAppRun executes on every launch.
+  # DO NOT use wineserver -w here — mkWindowsApp manages the process lifecycle.
   winAppRun = ''
-    wine "${mt5Exe}" "$ARGS"
+    $WINE "${mt5Exe}" "$ARGS"
   '';
 
   installPhase = ''
