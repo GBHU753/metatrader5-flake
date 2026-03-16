@@ -38,7 +38,7 @@ let
     hash = webviewHash;
   };
 
-  # Wine64 binary — wineWowPackages ships wine and wine64 side by side
+  # Wine64 binary — wineWow64Packages ships wine and wine64 side by side
   wine    = "${cfg.winePackage}/bin/wine";
   wine64  = "${cfg.winePackage}/bin/wine64";
   winecfg = "${cfg.winePackage}/bin/winecfg";
@@ -113,12 +113,12 @@ in
 
     winePackage = lib.mkOption {
       type        = lib.types.package;
-      default     = pkgs.wineWowPackages.staging;
-      defaultText = lib.literalExpression "pkgs.wineWowPackages.staging";
+      default     = pkgs.wineWow64Packages.staging;
+      defaultText = lib.literalExpression "pkgs.wineWow64Packages.staging";
       description = ''
         Wine package to use.  Must provide both 32- and 64-bit Wine
         binaries (required by MT5).  Defaults to
-        `pkgs.wineWowPackages.staging`.
+        `pkgs.wineWow64Packages.staging`.
       '';
     };
 
@@ -167,8 +167,8 @@ in
     ];
 
     # Wine needs OpenGL and 32-bit driver support
-    hardware.opengl.enable          = lib.mkDefault true;
-    hardware.opengl.driSupport32Bit = lib.mkDefault true;
+    hardware.graphics.enable       = lib.mkDefault true;
+    hardware.graphics.enable32Bit  = lib.mkDefault true;
 
     # Optional systemd user service for automatic first-run installation
     systemd.user.services.mt5-install = lib.mkIf cfg.autoInstall {
