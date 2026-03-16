@@ -16,7 +16,7 @@
     packages = forEachSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        mkWindowsApp = erosanix.packages.${system}.mkwindowsapp;
+        mkWindowsApp = erosanix.lib.${system}.mkWindowsApp;
       in {
         default    = self.packages.${system}.metatrader5;
         metatrader5 = pkgs.callPackage ./pkgs/metatrader5.nix {
