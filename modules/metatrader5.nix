@@ -5,7 +5,7 @@ let
 
   # Load hashes from the pinned hashes.json sitting next to this file.
   # When hashes are empty strings (initial state before first update.sh run)
-  # we fall back to impure fetching so the module still evaluates.
+  # we fall back to a placeholder and emit a warning so the module still evaluates.
   hashData = builtins.fromJSON (builtins.readFile ../hashes.json);
 
   hasMt5Hash     = hashData.mt5.hash     != "";
@@ -38,13 +38,12 @@ let
     hash = webviewHash;
   };
 
-  # Wine64 binary — wineWow64Packages ships wine and wine64 side by side
+  # Wine binary paths — wineWow64Packages ships wine and wine64 side by side
   wine    = "${cfg.winePackage}/bin/wine";
   wine64  = "${cfg.winePackage}/bin/wine64";
   winecfg = "${cfg.winePackage}/bin/winecfg";
 
   # Set the Windows version in the registry without spawning a GUI winecfg.
-  # winecfg accepts /v <version> on the command line.
   setWin11Reg = pkgs.writeShellScript "mt5-set-win11" ''
     export WINEPREFIX="$1"
     # Initialise the prefix first (wineboot -u = update without showing splash)
@@ -69,7 +68,6 @@ let
     ${setWin11Reg} "$WINEPREFIX"
 
     echo "==> Installing WebView2 Runtime (silent)..."
-    # /silent /install are the documented flags for the WebView2 bootstrapper
     ${wine} ${webview2Installer} /silent /install
 
     # Wait for any background wine processes spawned by the installer to settle
@@ -124,11 +122,10 @@ in
 
     winePrefix = lib.mkOption {
       type        = lib.types.str;
-      default     = "$HOME/.mt5";
-      defaultText = lib.literalExpression ''"$HOME/.mt5"'';
+      default     = "${config.home.homeDirectory}/.mt5";
+      defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/.mt5"'';
       description = ''
         Path to the Wine prefix used for MetaTrader 5.
-        Evaluated at runtime so `$HOME` expands for the calling user.
       '';
     };
 
@@ -143,15 +140,6 @@ in
         When false, run `mt5-install` manually after logging in.
       '';
     };
-
-    users = lib.mkOption {
-      type    = lib.types.listOf lib.types.str;
-      default = [];
-      description = ''
-        Usernames for whom the auto-install systemd user service is
-        activated.  Only used when `autoInstall = true`.
-      '';
-    };
   };
 
   ###########################################################################
@@ -159,39 +147,38 @@ in
   ###########################################################################
   config = lib.mkIf cfg.enable {
 
-    environment.systemPackages = [
+    home.packages = [
       cfg.winePackage
       pkgs.winetricks
       mt5Launcher
       mt5InstallBin
     ];
 
-    # Wine needs OpenGL and 32-bit driver support
-    hardware.graphics.enable       = lib.mkDefault true;
-    hardware.graphics.enable32Bit  = lib.mkDefault true;
+    # Remind the user that graphics drivers must be enabled at the system level.
+    # home-manager cannot set hardware.graphics options itself.
+    warnings = [
+      ''
+        programs.metatrader5: Wine requires OpenGL and 32-bit driver support.
+        Ensure your NixOS system configuration includes:
+          hardware.graphics.enable      = true;
+          hardware.graphics.enable32Bit = true;
+      ''
+    ];
 
-    # Optional systemd user service for automatic first-run installation
+    # Optional systemd user service for automatic first-run installation.
+    # home-manager manages the wantedBy symlink natively.
     systemd.user.services.mt5-install = lib.mkIf cfg.autoInstall {
-      description = "MetaTrader 5 first-run installer";
-      after       = [ "graphical-session.target" ];
-      wantedBy    = [ "graphical-session.target" ];
-      serviceConfig = {
+      Unit = {
+        Description = "MetaTrader 5 first-run installer";
+        After       = [ "graphical-session.target" ];
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+      Service = {
         Type            = "oneshot";
         ExecStart       = "${installerScript}";
         RemainAfterExit = true;
         Restart         = "no";
       };
     };
-
-    assertions = [
-      {
-        assertion = cfg.autoInstall -> cfg.users != [];
-        message   = ''
-          programs.metatrader5.autoInstall is enabled but
-          programs.metatrader5.users is empty.
-          Add the usernames that should receive the auto-installer service.
-        '';
-      }
-    ];
   };
 }
