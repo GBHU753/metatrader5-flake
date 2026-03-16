@@ -29,7 +29,7 @@ let
     name = "metatrader5-icon";
     src  = fetchurl {
       url  = "https://c.mql5.com/favicon.ico";
-      hash = "sha256-3CZbQNLPIHTB1kPHLFnoIx30r4p5wQT1CwMmwbgKI0c=";
+      hash = "sha256-6AymGlwlum4SKRgwL8ASNx9xgvzc6sZLGDM3Zbzm90I=";
     };
     dontUnpack = true;
     nativeBuildInputs = [ imagemagick ];
