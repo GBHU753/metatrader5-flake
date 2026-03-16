@@ -82,14 +82,26 @@ in mkWindowsApp rec {
 
     # Run the MT5 installer — interactive GUI wizard.
     # The user must click through the setup wizard on the desktop.
+    # MT5 auto-launches after install completes (the installer's default behaviour).
+    # We use wineserver -k rather than wineserver -w so that the auto-launched MT5
+    # and any background processes (updater, agent) are force-killed, allowing
+    # mk_app_layer to finalise the layer cleanly without blocking.
+    # The user launches MT5 normally via the metatrader5 command after this.
     $WINE ${mt5Installer}
-    wineserver -w
+    wineserver -k
+    sleep 2
   '';
 
   # winAppRun executes on every launch.
   # DO NOT use wineserver -w here — mkWindowsApp manages the process lifecycle.
+  # We background the Wine process and wait only for terminal64.exe to exit,
+  # then force-kill any remaining Wine processes (MT5 updater, agent, etc.)
+  # so that mkWindowsApp's subsequent wineserver -w returns immediately rather
+  # than blocking indefinitely on lingering background processes.
   winAppRun = ''
-    $WINE "${mt5Exe}" "$ARGS"
+    $WINE "${mt5Exe}" "$ARGS" &
+    wait $!
+    wineserver -k
   '';
 
   installPhase = ''
