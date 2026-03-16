@@ -38,16 +38,19 @@ let
     hash = webviewHash;
   };
 
-  # Wine binary paths — wineWow64Packages ships wine and wine64 side by side
-  wine    = "${cfg.winePackage}/bin/wine";
-  wine64  = "${cfg.winePackage}/bin/wine64";
-  winecfg = "${cfg.winePackage}/bin/winecfg";
+  # Wine binary paths.
+  # wineWow64Packages ships a single unified `wine` binary that handles both
+  # 32- and 64-bit — there is no separate wine64 in this package set.
+  wine      = "${cfg.winePackage}/bin/wine";
+  wineboot  = "${cfg.winePackage}/bin/wineboot";
+  winecfg   = "${cfg.winePackage}/bin/winecfg";
+  wineserver = "${cfg.winePackage}/bin/wineserver";
 
   # Set the Windows version in the registry without spawning a GUI winecfg.
   setWin11Reg = pkgs.writeShellScript "mt5-set-win11" ''
     export WINEPREFIX="$1"
-    # Initialise the prefix first (wineboot -u = update without showing splash)
-    ${wine64} wineboot --init
+    # Initialise the prefix (--init = create prefix without showing splash)
+    ${wineboot} --init
     # Set Windows version to Windows 11 via the command-line flag
     ${winecfg} /v win11
   '';
@@ -71,13 +74,13 @@ let
     ${wine} ${webview2Installer} /silent /install
 
     # Wait for any background wine processes spawned by the installer to settle
-    ${wine64} wineserver --wait
+    ${wineserver} --wait
 
     echo "==> Running MetaTrader 5 installer..."
     echo "    Follow the on-screen wizard.  Close it when done."
     ${wine} ${mt5Installer}
 
-    ${wine64} wineserver --wait
+    ${wineserver} --wait
 
     touch "$STAMP"
     echo "==> MetaTrader 5 installation complete."
