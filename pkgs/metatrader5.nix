@@ -37,7 +37,7 @@ let
       for n in 16 24 32 48 64 96 128 256; do
         size="''${n}x''${n}"
         mkdir -p $out/hicolor/$size/apps
-        convert $src[0] -resize $size $out/hicolor/$size/apps/metatrader5.png
+        magick $src -resize $size $out/hicolor/$size/apps/metatrader5.png
       done
     '';
   };
