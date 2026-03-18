@@ -23,7 +23,7 @@ let
   };
 
   # MT5 installs to a path that includes the version number, so we glob for it.
-  mt5Exe = "$WINEPREFIX/drive_c/Program Files/MetaTrader 5/terminal64.exe";
+  mt5Exe = "$WINEPREFIX/drive_c/Program Files/BlackBull Markets MT5/terminal64.exe";
 
   icon = stdenv.mkDerivation {
     name = "metatrader5-icon";
