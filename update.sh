@@ -9,7 +9,7 @@ set -euo pipefail
 
 HASHES_FILE="$(dirname "$0")/hashes.json"
 
-URL_MT5="https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe"
+URL_MT5="https://download.mql5.com/cdn/web/black.bull.group/mt5/blackbullmarkets5setup.exe"
 URL_WEBVIEW="https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/f2910a1e-e5a6-4f17-b52d-7faf525d17f8/MicrosoftEdgeWebview2Setup.exe"
 
 CHECK_ONLY=false

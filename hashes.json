@@ -1,7 +1,7 @@
 {
   "mt5": {
-    "url": "https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe",
-    "hash": "sha256:0djf7x5n2ihslarf5b3wi6mn9k21lj35n8b4904lxll70mvgsdyl"
+    "url": "https://download.mql5.com/cdn/web/black.bull.group/mt5/blackbullmarkets5setup.exe",
+    "hash": "sha256:1ry87bfhpk8wyf8pp1fiyljccid5jv297ddwyc9mrfgr5mb6cv3f"
   },
   "webview2": {
     "url": "https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/f2910a1e-e5a6-4f17-b52d-7faf525d17f8/MicrosoftEdgeWebview2Setup.exe",
